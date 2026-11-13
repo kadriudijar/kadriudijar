@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pillow
+      - run: pip install pillow==13.0.0 # exact pin: this job may hold ORCA_TOKEN, so no unreviewed releases
       - run: python test_orca.py
       - run: python orca.py
         env:
