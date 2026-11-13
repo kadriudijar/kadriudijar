@@ -3,9 +3,9 @@
 import json
 import math
 import os
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
-from xml.sax.saxutils import escape
 
 from PIL import Image
 
@@ -216,29 +216,35 @@ def activity_svg(login, days, today, dark):
     )
 
 
-def languages_svg(languages, dark):
-    """A 400x195 card: the top six languages by repository count, as a bar and a two-column legend."""
-    top = sorted(languages.items(), key=lambda item: -item[1][1])[:6]
-    total = sum(count for _, (_, count) in top) or 1
+BREAKDOWN_COLORS = {"commits": "#2da44e", "prs": "#8250df", "reviews": "#bf8700", "issues": "#1a7fbf"}
+
+
+def breakdown_svg(breakdown, dark):
+    """A 400x195 card: all-time commits, pull requests, reviews and issues, as a bar and one row each."""
+    rows = [
+        ("commits", "Commits", f"{breakdown['commits']:,}"),
+        ("prs", "Pull requests", f"{breakdown['prs']:,} ({breakdown['merged']:,} merged)"),
+        ("reviews", "Code reviews", f"{breakdown['reviews']:,}"),
+        ("issues", "Issues", f"{breakdown['issues']:,}"),
+    ]
+    total = sum(breakdown[key] for key, _, _ in rows) or 1
     title, text = ("#6fb7e0", "#c9d1d9") if dark else ("#0b4f7c", "#1f2328")
-    bar, x = "", 25.0
-    legend = ""
-    for i, (name, (color, count)) in enumerate(top):
-        width, color = 350 * count / total, color or GREY
+    bar, x, lines = "", 25.0, ""
+    for i, (key, label, value) in enumerate(rows):
+        width, color, y = 350 * breakdown[key] / total, BREAKDOWN_COLORS[key], 100 + i * 25
         bar += f'<rect x="{x:.1f}" y="55" width="{width:.1f}" height="10" fill="{color}"/>'
         x += width
-        lx, ly = 25 + (i % 2) * 180, 95 + (i // 2) * 30
-        legend += (
-            f'<circle cx="{lx + 5}" cy="{ly - 5}" r="5" fill="{color}"/>'
-            f'<text x="{lx + 16}" y="{ly}">{escape(name)} {100 * count / total:.1f}%</text>'
+        lines += (
+            f'<circle cx="30" cy="{y - 5}" r="5" fill="{color}"/><text x="43" y="{y}">{label}:</text>'
+            f'<text x="375" y="{y}" text-anchor="end" font-weight="700">{value}</text>'
         )
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="195" viewBox="0 0 400 195" '
         "font-family=\"'Segoe UI', Ubuntu, Sans-Serif\">"
-        f'<text x="25" y="35" font-size="18" font-weight="600" fill="{title}">Most used languages</text>'
+        f'<text x="25" y="35" font-size="18" font-weight="600" fill="{title}">Contribution breakdown</text>'
         f'<clipPath id="bar"><rect x="25" y="55" width="350" height="10" rx="5"/></clipPath>'
         f'<g clip-path="url(#bar)">{bar}</g>'
-        f'<g font-size="14" fill="{text}">{legend}</g></svg>'
+        f'<g font-size="14" fill="{text}">{lines}</g></svg>'
     )
 
 
@@ -256,6 +262,33 @@ def graphql(token, query, **variables):
     if body.get("errors"):
         raise RuntimeError(body["errors"])
     return body["data"]
+
+
+def fetch_breakdown(login, token):
+    """All-time counts from search, which, unlike the contribution calendar, splits private work by type.
+
+    Private repositories count only when the token can read them (ORCA_TOKEN in the workflow).
+    Commit search covers default branches only.
+    """
+    counts = graphql(
+        token,
+        """query($prs: String!, $merged: String!, $reviews: String!, $issues: String!) {
+          prs: search(type: ISSUE, query: $prs, first: 0) { issueCount }
+          merged: search(type: ISSUE, query: $merged, first: 0) { issueCount }
+          reviews: search(type: ISSUE, query: $reviews, first: 0) { issueCount }
+          issues: search(type: ISSUE, query: $issues, first: 0) { issueCount } }""",
+        prs=f"author:{login} is:pr",
+        merged=f"author:{login} is:pr is:merged",
+        reviews=f"reviewed-by:{login} is:pr -author:{login}",
+        issues=f"author:{login} is:issue",
+    )
+    request = urllib.request.Request(
+        "https://api.github.com/search/commits?per_page=1&q=" + urllib.parse.quote(f"author:{login}"),
+        headers={"Authorization": f"bearer {token}", "User-Agent": "git-orca", "Accept": "application/vnd.github+json"},
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        commits = json.load(response)["total_count"]
+    return {"commits": commits, **{key: value["issueCount"] for key, value in counts.items()}}
 
 
 def fetch(login, token):
@@ -303,6 +336,7 @@ def main():
         raise SystemExit("Set GITHUB_TOKEN or GH_TOKEN.")
     login = os.environ.get("ORCA_LOGIN", "kadriudijar")
     days, languages = fetch(login, token)
+    breakdown = fetch_breakdown(login, token)
     today = datetime.now(timezone.utc).date() - timedelta(1)  # the UTC day that just ended
     total = sum(n for d, n in days.items() if d <= today)
     signals = stage(total), top_color(languages), pod_size(weekly_streak(days, today)), behavior(days, today)
@@ -312,8 +346,8 @@ def main():
     for theme in ("light", "dark"):
         with open(f"cards/activity-{theme}.svg", "w") as file:
             file.write(activity_svg(login, days, today, dark=theme == "dark"))
-        with open(f"cards/languages-{theme}.svg", "w") as file:
-            file.write(languages_svg(languages, dark=theme == "dark"))
+        with open(f"cards/breakdown-{theme}.svg", "w") as file:
+            file.write(breakdown_svg(breakdown, dark=theme == "dark"))
 
 
 if __name__ == "__main__":

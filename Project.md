@@ -4,7 +4,8 @@
 
 The GitHub profile README of `kadriudijar`. It shows a pixel-art orca that a
 nightly workflow redraws from the account's GitHub activity, with an activity
-card and a languages card below it. The idea comes from git-koi (MIT).
+card and a contribution breakdown card below it. The idea comes from git-koi
+(MIT).
 
 ## Architecture
 
@@ -18,8 +19,9 @@ only when they changed.
   width.
   - Growth stage from lifetime contributions: calf < 500, juvenile < 3000,
     adult ≥ 3000.
-  - The saddle patch takes the color of the top language on the languages
-    card. It is grey when there is none.
+  - The saddle patch takes the color of the most common main language across
+    the non-fork repositories the account owns or has contributed to. It is
+    grey when there is none.
   - The pod: one calf per 4 weeks of the current weekly streak, max 2.
   - The behavior comes from the UTC day that just ended: rest (3+ quiet days),
     spyhop (first active day of the week), breach (≥ 5 and ≥ 2× the 28-day
@@ -28,10 +30,12 @@ only when they changed.
   calendar, so it counts the private and org contributions the profile shares:
   contributions all time and in the last 365 days, the current and longest
   weekly streak, and the best day.
-- **Languages card** — `cards/languages-{light,dark}.svg`: the top six
-  languages by repository count, from the main language of each non-fork
-  repository the account owns or has contributed to. Private org repositories
-  count only when the `ORCA_TOKEN` secret is set.
+- **Breakdown card** — `cards/breakdown-{light,dark}.svg`: all-time commits,
+  pull requests (with how many merged), code reviews on others' pull requests,
+  and issues, as a bar and one row each. The counts come from GitHub search,
+  because the contribution calendar reports private org work only as an
+  untyped "restricted" total. Commit search covers default branches only.
+  Private repositories count only when the `ORCA_TOKEN` secret is set.
 - Both cards sit top-aligned in a row below the orca and follow the viewer's
   color scheme.
 - **Nightly redraw** — runs at 00:10 UTC, on manual dispatch, and on pushes
@@ -51,4 +55,4 @@ only when they changed.
 - Own cards instead of `github-readme-stats`: its commit count and languages
   read public data only, and most of the work is in private org repositories.
 - The script reads the first 100 owned and 100 contributed repositories for
-  languages.
+  the orca's saddle color.
