@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from orca import behavior, pod_size, stage, top_color, weekly_streak
+from orca import activity_svg, behavior, longest_weekly_streak, pod_size, stage, top_color, weekly_streak
 
 D = date  # brevity
 today = D(2026, 11, 12)  # a Thursday; its week starts Monday 2026-11-09
@@ -35,5 +35,15 @@ assert behavior({**span(D(2026, 10, 15), D(2026, 11, 11), 2), D(2026, 11, 12): 3
 assert top_color({}) == "#8a8a8a"
 assert top_color({"Python": ("#3572A5", 100), "C#": ("#178600", 500)}) == "#178600"
 assert top_color({"Weird": (None, 900), "Go": ("#00ADD8", 10)}) == "#8a8a8a"
+
+assert longest_weekly_streak(weeks, today) == 5
+assert longest_weekly_streak({**weeks, D(2025, 1, 1): 1, D(2025, 1, 8): 1}, today) == 5
+assert longest_weekly_streak({D(2026, 11, 13): 9}, today) == 0
+
+card = activity_svg("octocat", {D(2025, 11, 12): 7, D(2026, 11, 4): 1, D(2026, 11, 12): 3, D(2026, 11, 13): 99}, today, dark=False)
+assert card.startswith("<svg") and "octocat" in card
+assert ">11<" in card  # all time, ignoring the day after today
+assert ">4<" in card  # last 365 days, so the day a year ago drops out
+assert "7 on 2025-11-12" in card  # best day
 
 print("ok")

@@ -35,6 +35,15 @@ def weekly_streak(days, today):
     return streak
 
 
+def longest_weekly_streak(days, today):
+    weeks = sorted({d - timedelta(d.weekday()) for d, n in days.items() if n and d <= today})
+    longest = run = 0
+    for i, week in enumerate(weeks):
+        run = run + 1 if i and week - weeks[i - 1] == timedelta(7) else 1
+        longest = max(longest, run)
+    return longest
+
+
 def behavior(days, today):
     count = lambda d: days.get(d, 0)
     quiet = 0
@@ -178,6 +187,34 @@ def save_gif(frames, path):
     os.replace(temporary, path)  # a failed run keeps the previous GIF
 
 
+# ---------- activity card ----------
+
+
+def activity_svg(login, days, today, dark):
+    """A 400x195 card from the contribution calendar, which counts the private and org work the profile shares."""
+    past = {d: n for d, n in days.items() if d <= today}
+    best = max(past.items(), key=lambda item: (item[1], item[0]), default=(today, 0))
+    weeks = lambda n: f"{n} week" + ("" if n == 1 else "s")
+    rows = [
+        ("Contributions (all time)", f"{sum(past.values()):,}"),
+        ("Contributions (last year)", f"{sum(n for d, n in past.items() if d > today - timedelta(365)):,}"),
+        ("Current weekly streak", weeks(weekly_streak(days, today))),
+        ("Longest weekly streak", weeks(longest_weekly_streak(days, today))),
+        ("Best day", f"{best[1]} on {best[0]}"),
+    ]
+    title, text = ("#6fb7e0", "#c9d1d9") if dark else ("#0b4f7c", "#1f2328")
+    lines = "".join(
+        f'<text x="25" y="{82 + i * 25}">{label}:</text><text x="375" y="{82 + i * 25}" text-anchor="end" font-weight="700">{value}</text>'
+        for i, (label, value) in enumerate(rows)
+    )
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="195" viewBox="0 0 400 195" '
+        "font-family=\"'Segoe UI', Ubuntu, Sans-Serif\">"
+        f'<text x="25" y="35" font-size="18" font-weight="600" fill="{title}">{login}\'s GitHub activity</text>'
+        f'<g font-size="14" fill="{text}">{lines}</g></svg>'
+    )
+
+
 # ---------- GitHub ----------
 
 
@@ -236,6 +273,10 @@ def main():
     signals = stage(total), top_color(languages), pod_size(weekly_streak(days, today)), behavior(days, today)
     print(f"total={total} stage={signals[0]} color={signals[1]} pod={signals[2]} behavior={signals[3]}")
     save_gif(render(*signals), "orca/orca.gif")
+    os.makedirs("cards", exist_ok=True)
+    for theme in ("light", "dark"):
+        with open(f"cards/activity-{theme}.svg", "w") as file:
+            file.write(activity_svg(login, days, today, dark=theme == "dark"))
 
 
 if __name__ == "__main__":
