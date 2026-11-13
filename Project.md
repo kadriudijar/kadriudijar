@@ -14,7 +14,7 @@ changed.
 
 ## Features
 
-- **Orca GIF** — `orca/orca.gif`, 256×128, 16 frames, looping.
+- **Orca GIF** — `orca/orca.gif`, 1024×512, 16 frames, shown at full README width, looping.
   - Growth stage from lifetime contributions: calf < 500, juvenile < 3000,
     adult ≥ 3000.
   - The saddle patch takes the color of the top language by bytes in public,
