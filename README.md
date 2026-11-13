@@ -3,7 +3,7 @@
   <br>
   <sub>
     <b>My GitHub skyline</b>: every building is one week of my contributions, oldest on the left, newest on the right.<br>
-    Taller means busier. 🏗️ The crane is this week, still being built. 🔴 The red beacon marks my busiest week. Redrawn every night.
+    Taller means busier. 🏗️ The crane is this week, still being built. 🔴 The red beacon marks my busiest finished week. Redrawn every night.
   </sub>
 </p>
 <p align="center">
