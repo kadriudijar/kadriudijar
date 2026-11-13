@@ -14,7 +14,7 @@ changed.
 
 ## Features
 
-- **Orca GIF** — `orca/orca.gif`, 1024×512, 16 frames, shown at full README width, looping.
+- **Orca GIF** — `orca/orca.gif`, 1024×512, 16 frames, looping.
   - Growth stage from lifetime contributions: calf < 500, juvenile < 3000,
     adult ≥ 3000.
   - The saddle patch takes the color of the top language by bytes in public,
@@ -27,16 +27,26 @@ changed.
 - **Nightly redraw** — runs at 00:10 UTC, on manual dispatch, and on pushes
   that change `orca.py` or the workflow. Key file: `.github/workflows/orca.yml`.
 
-- **Bonsai GIF** — `output/bonsai.gif`, drawn below the orca and linked to the
+- **Bonsai GIF** — `output/bonsai.gif`, beside the orca and linked to the
   git-bonsai playground. The `egorthinks/git-bonsai` Action (MIT, pinned to a
   commit) grows it in a read-only job; a second job with write access commits
   it only when it changed. It runs at 00:20 UTC so its push does not race the
   orca's. Key file: `.github/workflows/bonsai.yml`.
 
+- **Stats cards** — `cards/stats-{light,dark}.svg` and
+  `cards/languages-{light,dark}.svg`, shown below the orca and the bonsai, and
+  picked by the viewer's color scheme. The
+  `stats-organization/github-readme-stats-action` Action (pinned to v2.1.0)
+  draws them in a read-only job; a second job commits them only when they
+  changed. It runs at 00:30 UTC. Key file: `.github/workflows/cards.yml`.
+- **Layout** — `README.md` puts the bonsai (left, 40%) and the orca (right,
+  55%) side by side, with the two cards in a row below.
+
 ## Integrations
 
 - GitHub GraphQL API, through the workflow's built-in token.
 - `egorthinks/git-bonsai` GitHub Action for the bonsai, with a read-only token.
+- `stats-organization/github-readme-stats-action` for the cards, with a read-only token.
 
 ## Key Decisions
 
