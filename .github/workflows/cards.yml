@@ -11,7 +11,7 @@ on:
 env:
   LIGHT: hide_border=true&disable_animations=true&bg_color=00000000&title_color=0b4f7c&text_color=1f2328&icon_color=1a7fbf&ring_color=0b4f7c&card_width=400
   DARK: hide_border=true&disable_animations=true&bg_color=00000000&title_color=6fb7e0&text_color=c9d1d9&icon_color=7ccdf2&ring_color=6fb7e0&card_width=400
-  STATS: show_icons=true&rank_icon=github
+  STATS: show_icons=true&rank_icon=github&count_private=true # adds private and org contributions the profile shares
   LANGS: layout=compact&langs_count=6&custom_title=Most+used+languages
 
 jobs:

@@ -35,12 +35,13 @@ changed.
 
 - **Stats cards** — `cards/stats-{light,dark}.svg` and
   `cards/languages-{light,dark}.svg`, shown below the orca and the bonsai, and
-  picked by the viewer's color scheme. The
+  picked by the viewer's color scheme. Total commits include the private and
+  org contributions the profile shares (`count_private`). The
   `stats-organization/github-readme-stats-action` Action (pinned to v2.1.0)
   draws them in a read-only job; a second job commits them only when they
   changed. It runs at 00:30 UTC. Key file: `.github/workflows/cards.yml`.
-- **Layout** — `README.md` puts the bonsai (left, 40%) and the orca (right,
-  55%) side by side, with the two cards in a row below.
+- **Layout** — `README.md` puts the bonsai (28%) and the orca (66%) side by
+  side at the same height, with the two cards top-aligned in a row below.
 
 ## Integrations
 
