@@ -265,11 +265,7 @@ def graphql(token, query, **variables):
 
 
 def fetch_breakdown(login, token):
-    """All-time counts from search, which, unlike the contribution calendar, splits private work by type.
-
-    Private repositories count only when the token can read them (ORCA_TOKEN in the workflow).
-    Commit search covers default branches only.
-    """
+    """All-time counts from search over public repositories. Commit search covers default branches only."""
     counts = graphql(
         token,
         """query($prs: String!, $merged: String!, $reviews: String!, $issues: String!) {
@@ -292,10 +288,7 @@ def fetch_breakdown(login, token):
 
 
 def fetch(login, token):
-    """Daily contributions for every year, and the main language of each repository worked on, by repo count.
-
-    Private repositories count only when the token can read them (ORCA_TOKEN in the workflow).
-    """
+    """Daily contributions for every year, and the main language of each repository worked on, by repo count."""
     data = graphql(
         token,
         """query($login: String!) { user(login: $login) {
