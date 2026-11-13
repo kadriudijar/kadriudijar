@@ -32,9 +32,10 @@ only when they changed.
   weekly streak, and the best day.
 - **Breakdown card** — `cards/breakdown-{light,dark}.svg`: all-time commits,
   pull requests (with how many merged), code reviews on others' pull requests,
-  and issues, as a bar and one row each. The counts come from GitHub search
-  over public repositories only, by choice: private org work stays out of it.
-  Commit search covers default branches only.
+  and issues, as a bar and one row each. The counts come from GitHub search,
+  because the contribution calendar reports private org work only as an
+  untyped "restricted" total. Private repositories count through the
+  `ORCA_TOKEN` secret. Commit search covers default branches only.
 - Both cards sit top-aligned in a row below the orca and follow the viewer's
   color scheme.
 - **Nightly redraw** — runs at 00:10 UTC, on manual dispatch, and on pushes
@@ -44,7 +45,9 @@ only when they changed.
 
 ## Integrations
 
-- GitHub GraphQL and search APIs, through the workflow's built-in token.
+- GitHub GraphQL and search APIs. The workflow uses the `ORCA_TOKEN` secret (a
+  classic token with `repo` scope, covering every organization) and falls back
+  to the built-in token without it.
 
 ## Key Decisions
 

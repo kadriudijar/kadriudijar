@@ -265,7 +265,7 @@ def graphql(token, query, **variables):
 
 
 def fetch_breakdown(login, token):
-    """All-time counts from search over public repositories. Commit search covers default branches only."""
+    """All-time counts from search over every repository the token can read. Commit search covers default branches only."""
     counts = graphql(
         token,
         """query($prs: String!, $merged: String!, $reviews: String!, $issues: String!) {

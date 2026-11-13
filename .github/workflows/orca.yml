@@ -23,7 +23,7 @@ jobs:
       - run: python test_orca.py
       - run: python orca.py
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.ORCA_TOKEN || github.token }} # ORCA_TOKEN: classic token, repo scope, for private org repos
           ORCA_LOGIN: ${{ github.repository_owner }}
       - name: Commit the orca if it changed
         run: |
