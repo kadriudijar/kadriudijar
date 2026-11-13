@@ -27,9 +27,16 @@ changed.
 - **Nightly redraw** — runs at 00:10 UTC, on manual dispatch, and on pushes
   that change `orca.py` or the workflow. Key file: `.github/workflows/orca.yml`.
 
+- **Bonsai GIF** — `output/bonsai.gif`, drawn below the orca and linked to the
+  git-bonsai playground. The `egorthinks/git-bonsai` Action (MIT, pinned to a
+  commit) grows it in a read-only job; a second job with write access commits
+  it only when it changed. It runs at 00:20 UTC so its push does not race the
+  orca's. Key file: `.github/workflows/bonsai.yml`.
+
 ## Integrations
 
 - GitHub GraphQL API, through the workflow's built-in token.
+- `egorthinks/git-bonsai` GitHub Action for the bonsai, with a read-only token.
 
 ## Key Decisions
 
