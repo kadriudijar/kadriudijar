@@ -23,6 +23,7 @@ night and commits them only when they changed.
     contributions come in.
   - The tallest finished week has a blinking red beacon. Windows light up at
     random and a few flicker; stars twinkle; a crescent moon sits top left.
+  - A two-line caption under the GIF in `README.md` explains how to read it.
 - **Activity card** — `cards/activity-{light,dark}.svg`, from the contribution
   calendar, so it counts the private and org contributions the profile shares:
   contributions all time and in the last 365 days, the current and longest
