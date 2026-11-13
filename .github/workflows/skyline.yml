@@ -1,4 +1,4 @@
-name: orca
+name: skyline
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [orca.py, .github/workflows/orca.yml]
+    paths: [skyline.py, .github/workflows/skyline.yml]
 
 permissions:
   contents: write
@@ -20,16 +20,16 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow==13.0.0 # exact pin: no unreviewed releases run with the token
-      - run: python test_orca.py
-      - run: python orca.py
+      - run: python test_skyline.py
+      - run: python skyline.py
         env:
           GITHUB_TOKEN: ${{ secrets.ORCA_TOKEN || github.token }} # ORCA_TOKEN: classic token, repo scope, for private org repos
-          ORCA_LOGIN: ${{ github.repository_owner }}
-      - name: Commit the orca if it changed
+          PROFILE_LOGIN: ${{ github.repository_owner }}
+      - name: Commit the skyline if it changed
         run: |
-          git add orca/orca.gif cards
+          git add skyline/skyline.gif cards
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: redraw the orca"
+          git commit -m "chore: redraw the skyline"
           git push

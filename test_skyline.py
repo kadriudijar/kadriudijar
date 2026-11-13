@@ -1,20 +1,17 @@
 from datetime import date, timedelta
 
-from orca import activity_svg, behavior, breakdown_svg, longest_weekly_streak, pod_size, stage, top_color, weekly_streak
+from skyline import activity_svg, breakdown_svg, building_heights, longest_weekly_streak, weekly_streak, weekly_totals
 
 D = date  # brevity
 today = D(2026, 11, 12)  # a Thursday; its week starts Monday 2026-11-09
 
+# Oldest week first; the last week is the one in progress and ignores days after today.
+totals = weekly_totals({D(2026, 11, 9): 2, D(2026, 11, 12): 3, D(2026, 11, 13): 50, D(2026, 11, 2): 4, D(2026, 10, 1): 9}, today, count=3)
+assert totals == [0, 4, 5]
+assert len(weekly_totals({}, today)) == 48
 
-def span(start, end, count):
-    return {start + timedelta(n): count for n in range((end - start).days + 1)}
-
-
-assert stage(0) == "calf" and stage(499) == "calf"
-assert stage(500) == "juvenile" and stage(2999) == "juvenile"
-assert stage(3000) == "adult"
-
-assert pod_size(3) == 0 and pod_size(4) == 1 and pod_size(8) == 2 and pod_size(100) == 2
+assert building_heights([0, 1, 4, 16], tallest=38) == [3, 14, 22, 38]  # square root of the share of the busiest week
+assert building_heights([0, 0]) == [3, 3]
 
 # Five complete active weeks; the current week has no activity yet and does not end the streak.
 weeks = {D(2026, 11, 4): 1, D(2026, 10, 28): 1, D(2026, 10, 21): 1, D(2026, 10, 14): 1, D(2026, 10, 7): 1}
@@ -24,17 +21,6 @@ assert weekly_streak({k: v for k, v in weeks.items() if k != D(2026, 10, 21)}, t
 assert weekly_streak({}, today) == 0
 # Days after today are ignored.
 assert weekly_streak({D(2026, 11, 13): 9}, today) == 0
-
-assert behavior({D(2026, 11, 9): 3}, today) == "rest"
-assert behavior({}, today) == "rest"
-assert behavior({D(2026, 11, 6): 1, D(2026, 11, 12): 2, D(2026, 11, 13): 50}, today) == "spyhop"
-assert behavior({**span(D(2026, 10, 15), D(2026, 11, 11), 2), D(2026, 11, 12): 10}, today) == "breach"
-assert behavior({**span(D(2026, 10, 15), D(2026, 11, 11), 1), D(2026, 11, 12): 4}, today) == "cruise"
-assert behavior({**span(D(2026, 10, 15), D(2026, 11, 11), 2), D(2026, 11, 12): 3}, today) == "cruise"
-
-assert top_color({}) == "#8a8a8a"
-assert top_color({"Python": ("#3572A5", 100), "C#": ("#178600", 500)}) == "#178600"
-assert top_color({"Weird": (None, 900), "Go": ("#00ADD8", 10)}) == "#8a8a8a"
 
 assert longest_weekly_streak(weeks, today) == 5
 assert longest_weekly_streak({**weeks, D(2025, 1, 1): 1, D(2025, 1, 8): 1}, today) == 5
