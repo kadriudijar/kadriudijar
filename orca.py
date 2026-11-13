@@ -5,6 +5,7 @@ import math
 import os
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
+from xml.sax.saxutils import escape
 
 from PIL import Image
 
@@ -215,6 +216,32 @@ def activity_svg(login, days, today, dark):
     )
 
 
+def languages_svg(languages, dark):
+    """A 400x195 card: the top six languages by repository count, as a bar and a two-column legend."""
+    top = sorted(languages.items(), key=lambda item: -item[1][1])[:6]
+    total = sum(count for _, (_, count) in top) or 1
+    title, text = ("#6fb7e0", "#c9d1d9") if dark else ("#0b4f7c", "#1f2328")
+    bar, x = "", 25.0
+    legend = ""
+    for i, (name, (color, count)) in enumerate(top):
+        width, color = 350 * count / total, color or GREY
+        bar += f'<rect x="{x:.1f}" y="55" width="{width:.1f}" height="10" fill="{color}"/>'
+        x += width
+        lx, ly = 25 + (i % 2) * 180, 95 + (i // 2) * 30
+        legend += (
+            f'<circle cx="{lx + 5}" cy="{ly - 5}" r="5" fill="{color}"/>'
+            f'<text x="{lx + 16}" y="{ly}">{escape(name)} {100 * count / total:.1f}%</text>'
+        )
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="195" viewBox="0 0 400 195" '
+        "font-family=\"'Segoe UI', Ubuntu, Sans-Serif\">"
+        f'<text x="25" y="35" font-size="18" font-weight="600" fill="{title}">Most used languages</text>'
+        f'<clipPath id="bar"><rect x="25" y="55" width="350" height="10" rx="5"/></clipPath>'
+        f'<g clip-path="url(#bar)">{bar}</g>'
+        f'<g font-size="14" fill="{text}">{legend}</g></svg>'
+    )
+
+
 # ---------- GitHub ----------
 
 
@@ -232,20 +259,28 @@ def graphql(token, query, **variables):
 
 
 def fetch(login, token):
-    """Daily contributions for every year, and public non-fork repository languages by bytes."""
+    """Daily contributions for every year, and the main language of each repository worked on, by repo count.
+
+    Private repositories count only when the token can read them (ORCA_TOKEN in the workflow).
+    """
     data = graphql(
         token,
         """query($login: String!) { user(login: $login) {
           contributionsCollection { contributionYears }
-          repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC) {
-            nodes { languages(first: 20) { edges { size node { name color } } } } } } }""",
+          repositories(first: 100, ownerAffiliations: OWNER, isFork: false) {
+            nodes { nameWithOwner primaryLanguage { name color } } }
+          repositoriesContributedTo(first: 100, includeUserRepositories: false,
+                                    contributionTypes: [COMMIT, PULL_REQUEST, REPOSITORY]) {
+            nodes { nameWithOwner primaryLanguage { name color } } } } }""",
         login=login,
     )["user"]
+    # shortcut: reads the first 100 owned and 100 contributed repositories; page through them if that stops being enough.
+    repos = {r["nameWithOwner"]: r for r in data["repositories"]["nodes"] + data["repositoriesContributedTo"]["nodes"]}
     languages = {}
-    for repo in data["repositories"]["nodes"]:
-        for edge in repo["languages"]["edges"]:
-            name, color = edge["node"]["name"], edge["node"]["color"]
-            languages[name] = (color, languages.get(name, (None, 0))[1] + edge["size"])
+    for repo in repos.values():
+        if language := repo["primaryLanguage"]:
+            name = language["name"]
+            languages[name] = (language["color"], languages.get(name, (None, 0))[1] + 1)
     days = {}
     for year in data["contributionsCollection"]["contributionYears"]:
         calendar = graphql(
@@ -277,6 +312,8 @@ def main():
     for theme in ("light", "dark"):
         with open(f"cards/activity-{theme}.svg", "w") as file:
             file.write(activity_svg(login, days, today, dark=theme == "dark"))
+        with open(f"cards/languages-{theme}.svg", "w") as file:
+            file.write(languages_svg(languages, dark=theme == "dark"))
 
 
 if __name__ == "__main__":

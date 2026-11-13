@@ -23,11 +23,12 @@ jobs:
       - run: python test_orca.py
       - run: python orca.py
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          # ORCA_TOKEN (a personal token with repo scope) lets the languages card see private org repos.
+          GITHUB_TOKEN: ${{ secrets.ORCA_TOKEN || github.token }}
           ORCA_LOGIN: ${{ github.repository_owner }}
       - name: Commit the orca if it changed
         run: |
-          git add orca/orca.gif cards/activity-*.svg
+          git add orca/orca.gif cards
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

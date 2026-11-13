@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from orca import activity_svg, behavior, longest_weekly_streak, pod_size, stage, top_color, weekly_streak
+from orca import GREY, activity_svg, behavior, languages_svg, longest_weekly_streak, pod_size, stage, top_color, weekly_streak
 
 D = date  # brevity
 today = D(2026, 11, 12)  # a Thursday; its week starts Monday 2026-11-09
@@ -45,5 +45,11 @@ assert card.startswith("<svg") and "octocat" in card
 assert ">11<" in card  # all time, ignoring the day after today
 assert ">4<" in card  # last 365 days, so the day a year ago drops out
 assert "7 on 2025-11-12" in card  # best day
+
+langs = {"C#": ("#178600", 6), "TypeScript": ("#3178c6", 2), "A&B": (None, 1), "L4": ("#111111", 1), "L5": ("#222222", 1), "L6": ("#333333", 1), "L7": ("#444444", 1)}
+card = languages_svg(langs, dark=True)
+assert card.startswith("<svg") and "L7" not in card  # top six only
+assert "C# 50.0%" in card and "A&amp;B" in card and GREY in card  # escaped name, grey for a missing color
+assert languages_svg({}, dark=False).startswith("<svg")
 
 print("ok")
